@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useApi } from '@/hooks/useApi';
-import { useSocket } from '@/hooks/useSocket';
+import { useSocket } from '@/contexts/SocketContext';
 import { fetchSessions, fetchSessionEvents } from '@/api';
 import { LayoutDashboard, Users, Activity, Clock, X, ChevronRight } from 'lucide-react';
 import { formatDate, truncate, duration } from '@/lib/utils';

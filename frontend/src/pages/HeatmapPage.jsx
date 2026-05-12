@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useApi } from '@/hooks/useApi';
-import { useSocket } from '@/hooks/useSocket';
+import { useSocket } from '@/contexts/SocketContext';
 import { fetchPageUrls, fetchHeatmap } from '@/api';
 import { Flame, MousePointerClick, Users, Link } from 'lucide-react';
 
