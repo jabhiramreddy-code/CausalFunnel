@@ -26,6 +26,48 @@ router.post('/', async (req, res) => {
       y: event_type === 'click' ? y : null,
     });
 
+    // ── Real-time push ───────────────────────────────────────────────────
+    // Compute a quick session summary so the dashboard can update in-place
+    const [sessionSummary] = await Event.aggregate([
+      { $match: { session_id } },
+      {
+        $group: {
+          _id: '$session_id',
+          event_count: { $sum: 1 },
+          first_seen:  { $min: '$timestamp' },
+          last_seen:   { $max: '$timestamp' },
+          pages_visited: { $addToSet: '$page_url' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          session_id: '$_id',
+          event_count: 1,
+          first_seen: 1,
+          last_seen: 1,
+          pages_visited: { $size: '$pages_visited' },
+        },
+      },
+    ]);
+
+    const io = req.app.locals.io;
+    if (io) {
+      io.emit('new_event', {
+        event: {
+          _id: event._id,
+          session_id: event.session_id,
+          event_type: event.event_type,
+          page_url:   event.page_url,
+          timestamp:  event.timestamp,
+          x:          event.x,
+          y:          event.y,
+        },
+        session: sessionSummary || null,
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     res.status(201).json({ success: true, event_id: event._id });
   } catch (err) {
     console.error('Error storing event:', err);

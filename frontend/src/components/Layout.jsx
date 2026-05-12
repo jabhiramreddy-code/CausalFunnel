@@ -9,9 +9,10 @@ const NAV_ITEMS = [
 
 /**
  * Layout — wraps every page with the sidebar and top header.
- * Pass `title` and `subtitle` as props to control the page header.
+ * Pass `title`, `subtitle`, and `liveConnected` as props.
+ * `liveConnected` drives the pulsing live-indicator dot in the sidebar footer.
  */
-export default function Layout({ children, title, subtitle }) {
+export default function Layout({ children, title, subtitle, liveConnected = false }) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* ── Sidebar ── */}
@@ -48,8 +49,24 @@ export default function Layout({ children, title, subtitle }) {
           ))}
         </nav>
 
-        {/* Footer */}
+        {/* Footer — live status dot */}
         <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full transition-colors duration-300',
+                liveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40'
+              )}
+            />
+            <span
+              className={cn(
+                'text-[11px] font-medium transition-colors duration-300',
+                liveConnected ? 'text-emerald-400' : 'text-muted-foreground/60'
+              )}
+            >
+              {liveConnected ? 'Live tracking active' : 'Connecting…'}
+            </span>
+          </div>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             Full Stack Assessment
             <br />
@@ -74,3 +91,4 @@ export default function Layout({ children, title, subtitle }) {
     </div>
   );
 }
+

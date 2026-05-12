@@ -35,5 +35,5 @@ export function useApi(fetcher, deps = []) {
     run();
   }, [run]);
 
-  return { data, loading, error, refetch: run };
+  return { data, loading, error, refetch: run, setData };
 }

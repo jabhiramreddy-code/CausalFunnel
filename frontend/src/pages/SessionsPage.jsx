@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Layout from '@/components/Layout';
 import StatCard from '@/components/StatCard';
 import ErrorBox from '@/components/ErrorBox';
@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useApi } from '@/hooks/useApi';
+import { useSocket } from '@/hooks/useSocket';
 import { fetchSessions, fetchSessionEvents } from '@/api';
 import { LayoutDashboard, Users, Activity, Clock, X, ChevronRight } from 'lucide-react';
 import { formatDate, truncate, duration } from '@/lib/utils';
@@ -22,11 +23,31 @@ function TableSkeleton({ rows = 6 }) {
     <TableRow key={i} className="pointer-events-none">
       {[140, 60, 110, 110, 50].map((w, j) => (
         <TableCell key={j}>
-          <Skeleton className={`h-4`} style={{ width: w }} />
+          <Skeleton className="h-4" style={{ width: w }} />
         </TableCell>
       ))}
     </TableRow>
   ));
+}
+
+/* ── Live badge ─────────────────────────────────────────────────────────── */
+function LiveBadge({ connected }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${
+        connected
+          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+          : 'bg-muted text-muted-foreground border border-border'
+      }`}
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${
+          connected ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground'
+        }`}
+      />
+      {connected ? 'Live' : 'Connecting…'}
+    </span>
+  );
 }
 
 /* ── Session detail drawer ──────────────────────────────────────────────── */
@@ -39,10 +60,7 @@ function SessionDrawer({ sessionId, onClose }) {
   return (
     <div className="fixed inset-0 z-40 flex">
       {/* Backdrop */}
-      <div
-        className="flex-1 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
       <aside className="w-[420px] max-w-full h-full overflow-y-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
@@ -92,7 +110,27 @@ function SessionDrawer({ sessionId, onClose }) {
 /* ── Main page ─────────────────────────────────────────────────────────── */
 export default function SessionsPage() {
   const [selectedSession, setSelectedSession] = useState(null);
-  const { data: sessions, loading, error, refetch } = useApi(fetchSessions, []);
+  const { data: sessions, loading, error, refetch, setData: setSessions } = useApi(fetchSessions, []);
+
+  // ── Real-time updates ────────────────────────────────────────────────────
+  const handleNewEvent = useCallback(({ session }) => {
+    if (!session) return;
+    setSessions((prev) => {
+      if (!prev) return prev;
+      const idx = prev.findIndex((s) => s.session_id === session.session_id);
+      if (idx !== -1) {
+        // Update existing session in-place and move to top
+        const updated = [...prev];
+        updated.splice(idx, 1);
+        return [session, ...updated];
+      }
+      // Brand-new session — prepend
+      return [session, ...prev];
+    });
+  }, [setSessions]);
+
+  const { connected } = useSocket('new_event', handleNewEvent);
+  // ─────────────────────────────────────────────────────────────────────────
 
   const totalEvents = sessions?.reduce((acc, s) => acc + s.event_count, 0) ?? 0;
   const avgEvents = sessions?.length
@@ -103,30 +141,13 @@ export default function SessionsPage() {
     <Layout
       title="Sessions"
       subtitle="Every unique visitor session tracked on your pages"
+      liveConnected={connected}
     >
       {/* ── Stats ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard
-          label="Total Sessions"
-          value={sessions?.length}
-          icon={Users}
-          loading={loading}
-          color="primary"
-        />
-        <StatCard
-          label="Total Events"
-          value={totalEvents}
-          icon={Activity}
-          loading={loading}
-          color="blue"
-        />
-        <StatCard
-          label="Avg Events / Session"
-          value={avgEvents}
-          icon={LayoutDashboard}
-          loading={loading}
-          color="emerald"
-        />
+        <StatCard label="Total Sessions" value={sessions?.length} icon={Users} loading={loading} color="primary" />
+        <StatCard label="Total Events" value={totalEvents} icon={Activity} loading={loading} color="blue" />
+        <StatCard label="Avg Events / Session" value={avgEvents} icon={LayoutDashboard} loading={loading} color="emerald" />
       </div>
 
       {/* ── Table ── */}
@@ -135,6 +156,9 @@ export default function SessionsPage() {
           <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
             All Sessions
+            <span className="ml-auto">
+              <LiveBadge connected={connected} />
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -175,22 +199,14 @@ export default function SessionsPage() {
                       className="group"
                     >
                       <TableCell>
-                        <span className="font-mono text-xs text-primary/80">
-                          {truncate(s.session_id, 20)}
-                        </span>
+                        <span className="font-mono text-xs text-primary/80">{truncate(s.session_id, 20)}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="default">{s.event_count}</Badge>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {formatDate(s.first_seen)}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {formatDate(s.last_seen)}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {s.pages_visited}
-                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(s.first_seen)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(s.last_seen)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{s.pages_visited}</TableCell>
                       <TableCell>
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                       </TableCell>
@@ -204,10 +220,7 @@ export default function SessionsPage() {
 
       {/* ── Session drawer ── */}
       {selectedSession && (
-        <SessionDrawer
-          sessionId={selectedSession}
-          onClose={() => setSelectedSession(null)}
-        />
+        <SessionDrawer sessionId={selectedSession} onClose={() => setSelectedSession(null)} />
       )}
     </Layout>
   );

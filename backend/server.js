@@ -1,9 +1,12 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
+const { Server } = require('socket.io');
 const connectDB = require('./db');
 
 const app = express();
+const server = http.createServer(app);
 
 // ─── Middleware ────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -31,6 +34,24 @@ app.use(
   })
 );
 
+// ─── Socket.IO ────────────────────────────────────────────────────────────
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Make io accessible in all route handlers via req.app.locals.io
+app.locals.io = io;
+
+io.on('connection', (socket) => {
+  console.log(`⚡ Dashboard connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`❌ Dashboard disconnected: ${socket.id}`);
+  });
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────
 app.use('/api/events', require('./routes/events'));
 app.use('/api/sessions', require('./routes/sessions'));
@@ -46,7 +67,8 @@ app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 const PORT = process.env.PORT || 4000;
 
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`⚡ Socket.IO ready for real-time connections`);
   });
 });
