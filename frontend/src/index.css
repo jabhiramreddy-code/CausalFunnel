@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens (dark theme) ──────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 240 10% 4%;        /* #09090f */
+    --foreground: 210 40% 96%;
+
+    --card: 240 8% 8%;               /* #111118 */
+    --card-foreground: 210 40% 96%;
+
+    --muted: 240 6% 14%;
+    --muted-foreground: 215 20% 55%;
+
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+
+    --primary: 263 70% 60%;          /* violet-500 */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 210 40% 96%;
+
+    --accent: 263 70% 60%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 263 70% 60%;
+    --radius: 0.75rem;
+  }
+}
+
+/* ─── Base resets ─────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(263 70% 60% / 0.6);
+  }
+}
+
+/* ─── Shimmer skeleton ────────────────────────────────────────────────── */
+@layer utilities {
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(240 6% 14%) 0%,
+      hsl(240 6% 20%) 50%,
+      hsl(240 6% 14%) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite;
+  }
+
+  /* Heatmap dot glow */
+  .heat-dot {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: screen;
+  }
+
+  /* Glass surface */
+  .glass {
+    background: hsl(240 8% 8% / 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(240 6% 16%);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

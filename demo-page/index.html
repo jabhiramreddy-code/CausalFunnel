@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Shop – CausalFunnel Tracking Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f13;
+      color: #e2e2e2;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo { font-size: 1.3rem; font-weight: 700; color: #a78bfa; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: #aaa; text-decoration: none; transition: color .2s; }
+    .nav-links a:hover { color: #fff; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+      background: radial-gradient(ellipse at 50% 0%, rgba(167,139,250,0.15) 0%, transparent 70%);
+    }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -1px; }
+    .hero h1 span { color: #a78bfa; }
+    .hero p { color: #888; margin: 1rem auto; max-width: 500px; font-size: 1.1rem; }
+    .hero-btns { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: .75rem 2rem; border-radius: 8px; border: none;
+      font-size: 1rem; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .btn-primary { background: #a78bfa; color: #0f0f13; }
+    .btn-primary:hover { background: #c4b5fd; transform: translateY(-2px); }
+    .btn-secondary {
+      background: transparent; color: #a78bfa;
+      border: 1px solid rgba(167,139,250,0.5);
+    }
+    .btn-secondary:hover { background: rgba(167,139,250,0.1); }
+
+    /* ── Products ── */
+    .section-title {
+      text-align: center; font-size: 1.5rem; font-weight: 700;
+      margin: 3rem 0 1.5rem; color: #fff;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+      padding: 0 2rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(167,139,250,0.15);
+    }
+    .card-img {
+      width: 100%; aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+    }
+    .card-body { padding: 1rem; }
+    .card-title { font-weight: 600; font-size: 1rem; }
+    .card-price { color: #a78bfa; font-weight: 700; margin-top: .25rem; }
+    .card-actions { display: flex; gap: .5rem; margin-top: .75rem; }
+    .card-actions .btn { flex: 1; padding: .5rem; font-size: .875rem; }
+
+    /* ── Banner colors ── */
+    .bg1 { background: linear-gradient(135deg, #1e1b4b, #312e81); }
+    .bg2 { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+    .bg3 { background: linear-gradient(135deg, #0f2027, #203a43); }
+    .bg4 { background: linear-gradient(135deg, #200122, #6f0000); }
+    .bg5 { background: linear-gradient(135deg, #0a3d0a, #1a5c1a); }
+    .bg6 { background: linear-gradient(135deg, #1a0533, #3b0070); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: #555; font-size: .875rem;
+    }
+
+    /* ── Tracker badge ── */
+    #tracker-badge {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.4);
+      border-radius: 8px;
+      padding: .5rem .85rem;
+      font-size: .75rem; color: #a78bfa;
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <span class="logo">⚡ NovaBuy</span>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Products</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Shop the <span>Future</span></h1>
+    <p>Curated products for the modern lifestyle. Free shipping on orders over $50.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" id="shop-now-btn">Shop Now</button>
+      <button class="btn btn-secondary" id="learn-more-btn">Learn More</button>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <h2 class="section-title">Featured Products</h2>
+  <div class="products">
+    <div class="card" id="card-headphones">
+      <div class="card-img bg1">🎧</div>
+      <div class="card-body">
+        <div class="card-title">Quantum Headphones</div>
+        <div class="card-price">$149.99</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-headphones">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-headphones">♡</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-watch">
+      <div class="card-img bg2">⌚</div>
+      <div class="card-body">
+        <div class="card-title">Smart Watch Pro</div>
+        <div class="card-price">$299.99</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-watch">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-watch">♡</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-laptop">
+      <div class="card-img bg3">💻</div>
+      <div class="card-body">
+        <div class="card-title">UltraBook X15</div>
+        <div class="card-price">$1,299.00</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-laptop">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-laptop">♡</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-camera">
+      <div class="card-img bg4">📷</div>
+      <div class="card-body">
+        <div class="card-title">Nova Camera 4K</div>
+        <div class="card-price">$549.00</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-camera">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-camera">♡</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-keyboard">
+      <div class="card-img bg5">⌨️</div>
+      <div class="card-body">
+        <div class="card-title">Mech Keyboard RGB</div>
+        <div class="card-price">$89.99</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-keyboard">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-keyboard">♡</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-speaker">
+      <div class="card-img bg6">🔊</div>
+      <div class="card-body">
+        <div class="card-title">BassBoom Speaker</div>
+        <div class="card-price">$199.99</div>
+        <div class="card-actions">
+          <button class="btn btn-primary" id="buy-speaker">Buy Now</button>
+          <button class="btn btn-secondary" id="wishlist-speaker">♡</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2026 NovaBuy — Demo store for CausalFunnel tracking demo</footer>
+
+  <div id="tracker-badge">🟢 CausalFunnel tracking active</div>
+
+  <!-- CausalFunnel Tracking Script -->
+  <!-- Change data-api to your Render URL after deployment -->
+  <script src="tracker.js" data-api="http://localhost:4000"></script>
+</body>
+</html>
