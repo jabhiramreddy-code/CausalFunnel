@@ -36,7 +36,7 @@ app.use(
 // ─── Socket.IO ────────────────────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: "*", // allow all origins for the websocket to prevent connection failures
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
   },
 });

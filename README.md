@@ -11,7 +11,7 @@ A full-stack user analytics and session tracking application — tracking user i
 | Layer | Technology |
 |-------|-----------|
 | Tracking Script | Vanilla JS (IIFE, `sendBeacon`) |
-| Backend | Node.js · Express 4 |
+| Backend | Node.js · Express 4 · Socket.IO |
 | Database | MongoDB Atlas (Mongoose) |
 | Frontend | React 18 · Vite · shadcn/ui · Tailwind CSS |
 | Routing | React Router v6 |
@@ -22,12 +22,13 @@ A full-stack user analytics and session tracking application — tracking user i
 ## Features
 
 - **Session Tracking** — unique session IDs stored in `localStorage`, persistent across page reloads
+- **Real-Time Tracking** — WebSocket integration via Socket.IO pushes live user interactions to the dashboard instantly without refreshing
 - **Event Capture** — `page_view` on load, `click` with (x, y) coordinates
 - **Sessions Dashboard** — table of all sessions with event counts, first/last seen; click any row to see the full user journey timeline
 - **Click Heatmap** — select any tracked page URL and visualize click density with a color-scaled (blue → red) radial heatmap
 - **Skeleton loading** — shimmer placeholders while data fetches
 - **Error handling** — retry buttons on every failed fetch
-- **Reusable architecture** — `useApi` hook, centralized `api.js`, shared UI components
+- **Reusable architecture** — `useApi` hook, centralized `api.js`, shared UI components, shared `SocketContext`
 
 ---
 
@@ -152,6 +153,5 @@ In `demo-page/index.html`, update the `data-api` attribute:
 
 - **No authentication** — the API is open; for production, add JWT or API key auth
 - **Viewport coordinates** — click (x, y) are `clientX/clientY` (relative to viewport, not document); the heatmap normalizes against a fixed 1440×900 reference
-- **No real-time updates** — the dashboard is polling on page load; WebSockets could be added for live tracking
 - **MongoDB free tier** — Atlas M0 has 512MB storage limit, sufficient for demo purposes
-- **CORS** — origins are allowlisted; update `FRONTEND_URL` env var when deploying
+- **CORS** — origins are strictly allowlisted for both REST APIs and WebSockets to prevent unauthorized access. Update `FRONTEND_URL` env var (without a trailing slash) when deploying.
