@@ -39,17 +39,30 @@ router.get('/', async (req, res) => {
 router.get('/:session_id', async (req, res) => {
   try {
     const { session_id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
     const events = await Event.find({ session_id })
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 }) // Descending order (newest first)
+      .skip(skip)
+      .limit(limit)
       .select('-__v')
       .lean();
 
-    if (!events.length) {
+    const total = await Event.countDocuments({ session_id });
+
+    if (!events.length && page === 1) {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    res.json(events);
+    res.json({
+      events,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      hasMore: page * limit < total
+    });
   } catch (err) {
     console.error('Error fetching session events:', err);
     res.status(500).json({ error: 'Internal server error' });

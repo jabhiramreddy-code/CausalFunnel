@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import StatCard from '@/components/StatCard';
 import ErrorBox from '@/components/ErrorBox';
@@ -52,10 +52,37 @@ function LiveBadge({ connected }) {
 
 /* ── Session detail drawer ──────────────────────────────────────────────── */
 function SessionDrawer({ sessionId, onClose }) {
-  const { data: events, loading, error, refetch } = useApi(
-    () => fetchSessionEvents(sessionId),
-    [sessionId]
-  );
+  const [events, setEvents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const loadEvents = async (pageToLoad) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchSessionEvents(sessionId, pageToLoad);
+      setEvents(prev => pageToLoad === 1 ? data.events : [...prev, ...data.events]);
+      setHasMore(data.hasMore);
+      setPage(pageToLoad);
+    } catch (err) {
+      setError(err.message || 'Failed to load events');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEvents(1);
+  }, [sessionId]);
+
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 50 && !loading && hasMore) {
+      loadEvents(page + 1);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-40 flex">
@@ -74,10 +101,25 @@ function SessionDrawer({ sessionId, onClose }) {
           </Button>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto min-h-0">
+        <div className="p-6 flex-1 overflow-y-auto min-h-0" onScroll={handleScroll}>
+          {error && <ErrorBox message={error} onRetry={() => loadEvents(page)} />}
+          
+          {events.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 mb-5">
+                <Badge variant="outline">{events.length} events loaded</Badge>
+                <Badge variant="outline">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {duration(events[events.length - 1]?.timestamp, events[0]?.timestamp)}
+                </Badge>
+              </div>
+              <EventTimeline events={events} />
+            </>
+          )}
+
           {loading && (
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
+            <div className="space-y-4 mt-6">
+              {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex gap-3">
                   <Skeleton className="h-9 w-9 rounded-full shrink-0" />
                   <div className="space-y-1.5 flex-1">
@@ -88,18 +130,11 @@ function SessionDrawer({ sessionId, onClose }) {
               ))}
             </div>
           )}
-          {error && <ErrorBox message={error} onRetry={refetch} />}
-          {events && (
-            <>
-              <div className="flex items-center gap-2 mb-5">
-                <Badge variant="outline">{events.length} events</Badge>
-                <Badge variant="outline">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {duration(events[0]?.timestamp, events[events.length - 1]?.timestamp)}
-                </Badge>
-              </div>
-              <EventTimeline events={events} />
-            </>
+
+          {!hasMore && events.length > 0 && (
+            <p className="text-center text-xs text-muted-foreground mt-8 pb-4">
+              End of session journey
+            </p>
           )}
         </div>
       </aside>

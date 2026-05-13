@@ -31,8 +31,8 @@ async function request(path, options = {}) {
 export const fetchSessions = () => request('/sessions');
 
 /** Fetch ordered event journey for a single session */
-export const fetchSessionEvents = (sessionId) =>
-  request(`/sessions/${encodeURIComponent(sessionId)}`);
+export const fetchSessionEvents = (sessionId, page = 1) =>
+  request(`/sessions/${encodeURIComponent(sessionId)}?page=${page}&limit=20`);
 
 /** Fetch all distinct page URLs that have events */
 export const fetchPageUrls = () => request('/heatmap/urls');
