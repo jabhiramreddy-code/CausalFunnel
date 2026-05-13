@@ -45,8 +45,8 @@ function SessionDrawer({ sessionId, onClose }) {
       />
 
       {/* Panel */}
-      <aside className="w-[420px] max-w-full h-full overflow-y-auto border-l border-border bg-card flex flex-col animate-slide-in-right">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
+      <aside className="w-[420px] max-w-full h-full overflow-hidden border-l border-border bg-card flex flex-col animate-slide-in-right">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0 bg-card z-10">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Session Journey</h2>
             <p className="text-xs text-muted-foreground font-mono mt-0.5">{truncate(sessionId, 32)}</p>
@@ -56,7 +56,7 @@ function SessionDrawer({ sessionId, onClose }) {
           </Button>
         </div>
 
-        <div className="p-6 flex-1">
+        <div className="p-6 flex-1 overflow-y-auto min-h-0">
           {loading && (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
