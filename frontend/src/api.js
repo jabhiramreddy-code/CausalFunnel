@@ -5,6 +5,16 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+/**
+ * Socket.IO server URL — derived from VITE_API_URL by stripping the /api path.
+ * Falls back to localhost for local development (the Vite proxy handles REST but
+ * NOT WebSockets, so we connect directly to the backend for sockets in dev too).
+ */
+export const SOCKET_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+  : 'http://localhost:4000';
+
+
 async function request(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
