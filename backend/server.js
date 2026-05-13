@@ -17,12 +17,11 @@ const allowedOrigins = [
   'http://127.0.0.1:5500', // Live Server (127.0.0.1)
   'http://localhost:5500',  // Live Server (localhost)
   process.env.FRONTEND_URL,
-].filter(Boolean);
+].filter(Boolean).map(url => url.replace(/\/$/, '')); // strip trailing slash
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow: no origin (curl/Postman), file:// pages (origin === string 'null'), listed origins
       if (!origin || origin === 'null' || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -37,7 +36,7 @@ app.use(
 // ─── Socket.IO ────────────────────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: "*", // allow all origins for the websocket to prevent connection failures
     methods: ['GET', 'POST'],
   },
 });
